@@ -95,6 +95,24 @@ def create_app(test_config=None):
             'current_category': None
           })
 
+  # Creating endpoint to return only questions of a specific category
+  @app.endpoint('/categories/<int:category_id/questions', methods = ['GET'])
+  def get_category_questions(category_id):
+      # Querying all questions based on the inputted category_id
+      questions = Question.query.filter(Question.category == category_id).all()
+
+      # Returning proper information if info is present
+      if questions:
+          return jsonify({
+            'success': True,
+            'questions': [question.format() for question in questions],
+            'total_questions': len(questions),
+            'current_category': category_id
+          })
+      # Handling error scenarios where info not present
+      else:
+          abort(404)
+
   # 'DELETE' ENDPOINT SETUP
   # ---------------------------------------------------------------------------
   # Defining endpoint for deleting a question based on question_id
@@ -116,29 +134,68 @@ def create_app(test_config=None):
       # Handling error scenarios as 422 error
       except:
           abort(422)
-      
 
-  '''
-  @TODO:
-  Create an endpoint to POST a new question,
-  which will require the question and answer text,
-  category, and difficulty score.
 
-  TEST: When you submit a question on the "Add" tab,
-  the form will clear and the question will appear at the end of the last page
-  of the questions list in the "List" tab.
-  '''
+  # 'POST' ENDPOINT SETUP
+  # ---------------------------------------------------------------------------
+  # Creating endpoint to add new questions in POST method
+  @app.endpoint('/questions', methods = ['POST'])
+  def create_question():
+      # Getting body data from POST request
+      body = request.get_json()
 
-  '''
-  @TODO:
-  Create a POST endpoint to get questions based on a search term.
-  It should return any questions for whom the search term
-  is a substring of the question.
+      # Pulling info from body into respective variables
+      question = body.get('question')
+      answer = body.get('answer')
+      difficulty = body.get('difficulty')
+      category = body.get('category')
 
-  TEST: Search by any phrase. The questions list will update to include
-  only question that include that string within their question.
-  Try using the word "title" to start.
-  '''
+      # Checking if body information is available
+      if not (question and answer and difficulty and category):
+          abort(422)
+
+      # Creating try block to insert new question into database
+      try:
+          # Instantiating new question as Question object
+          new_question = Question(question = question,
+                                  answer = answer,
+                                  difficulty = difficulty,
+                                  category = category)
+
+          # Inserting new question into database
+          new_question.insert()
+
+          # Returning success information
+          return jsonify({
+            'success': True,
+            'created': new_question.id
+          })
+      # Handling error scenarios
+      except:
+          abort(422)
+
+
+  # Creating endpoint for searching for a question based on a search term
+  @app.endpoint('/question/search', methods = ['POST'])
+  def search_questions:
+      # Getting body data from POST request
+      body = request.get_json()
+
+      # Pulling search term from body
+      search_term = body.get('searchTerm')
+
+      # Returning search results if search term present
+      if search_term:
+          search_results = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
+
+          return jsonify({
+            'success': True,
+            'questions': [question.format() for question in search_results],
+            'total_questions': len(search_results),
+            'current_category': None
+          })
+
+
 
   '''
   @TODO:
