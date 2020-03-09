@@ -235,7 +235,30 @@ def create_app(test_config=None):
   # ERROR SCENARIO HANDLING
   # ---------------------------------------------------------------------------
   # Creating error handler for 400 errors
+  @app.errorhandler(400)
+  def bad_request():
+      return jsonify({
+        'success': False,
+        'error': 400,
+        'message': 'Bad request'
+      }), 400
 
+  # Creating error handler for 404 errors
+  @app.errorhandler(404)
+  def not_found():
+      return jsonify({
+        'success': False,
+        'error': 404,
+        'message': 'Resource not found'
+      }), 404
 
+  # Creating error handler for 422 errors
+  @app.errorhanlder(422)
+  def unable_to_process():
+      return jsonify({
+        'success': False,
+        'error': 422,
+        'message': 'Unable to process request'
+      }), 422
 
   return app
