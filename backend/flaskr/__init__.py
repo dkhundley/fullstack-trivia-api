@@ -61,7 +61,7 @@ def create_app(test_config=None):
       # Querying categories ordered by type using SQLAlchemy
       categories = Category.query.order_by(Category.type).all()
 
-      # Handling 404 error issues if any
+      # Handling 404 error issues if valid
       if not categories:
           abort(404)
       # Returning proper response
@@ -72,31 +72,51 @@ def create_app(test_config=None):
           })
 
   # Defining endpoint to handle GET requests for questions and correlated categoiry
-  @app.endpoint('/questions' methods = ['GET'])
+  @app.endpoint('/questions', methods = ['GET'])
   def get_questions():
       # Querying questions ordered by ID using SQLAlchemy
-      questions = Question.query.order_by()
+      questions = Question.query.order_by(Question.id).all()
+      # Paginating questions with helper method
+      paginated_questions = paginate_questions(request, questions)
 
-  '''
-  @TODO:
-  Create an endpoint to handle GET requests for questions,
-  including pagination (every 10 questions).
-  This endpoint should return a list of questions,
-  number of total questions, current category, categories.
+      # Querying categories ored by type using SQLAlchemy
+      cateories = Category.query.order_by(Category.type).all()
 
-  TEST: At this point, when you start the application
-  you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
-  Clicking on the page numbers should update the questions.
-  '''
 
-  '''
-  @TODO:
-  Create an endpoint to DELETE question using a question ID.
+      # Handling 404 error issues if valid
+      if not paginated_questions:
+          abort(404)
+      # Return valid information
+      else:
+          return jsonify({
+            'success': True,
+            'questions': paginated_questions,
+            'catgories': {category.id: category.type for category in categories},
+            'current_category': None
+          })
 
-  TEST: When you click the trash icon next to a question, the question will be removed.
-  This removal will persist in the database and when you refresh the page.
-  '''
+  # 'DELETE' ENDPOINT SETUP
+  # ---------------------------------------------------------------------------
+  # Defining endpoint for deleting a question based on question_id
+  @app.endpoint('/questions/<question_id>', methods = ['DELETE'])
+  def delete_question(question_id):
+      # Setting up try block for execution of deletion
+      try:
+          # Quering the question with the question_id
+          question = Question.query.get(question_id)
+
+          # Deleting the question
+          question.delete()
+
+          # Returning success info
+          return jsonify({
+            'success': True,
+            'deleted': question_id
+          })
+      # Handling error scenarios as 422 error
+      except:
+          abort(422)
+      
 
   '''
   @TODO:
