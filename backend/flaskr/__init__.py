@@ -91,6 +91,7 @@ def create_app(test_config=None):
           return jsonify({
             'success': True,
             'questions': paginated_questions,
+            'total_questions': len(questions),
             'catgories': {category.id: category.type for category in categories},
             'current_category': None
           })
@@ -176,7 +177,7 @@ def create_app(test_config=None):
 
 
   # Creating endpoint for searching for a question based on a search term
-  @app.endpoint('/question/search', methods = ['POST'])
+  @app.endpoint('/questions/search', methods = ['POST'])
   def search_questions():
       # Getting body data from POST request
       body = request.get_json()
