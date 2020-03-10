@@ -86,6 +86,31 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Resource not found')
 
+    # Creating test to ensure functionality to retrieve questions give a category works
+    def test_get_category_questions_basic(self):
+        # Getting basic category results from a category that is confirmed to exist
+        res = self.client().get('/categories/1/questions')
+        # Transforming response into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(len(data['total_questions']))
+        self.assertTrue(len(data['current_category']))
+
+    # Creating test to assess what happens when nonexistent category is passed to endpoint
+    def test_get_category_questions_404(self):
+        # Attempting to get results from endpoint
+        res = self.client().get('/categories/10000000/questions')
+        # Transforming response into JSON
+        data = json.loads(res.data)
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Resource not found')
+
 
 
     # DELETE Tests
@@ -130,6 +155,111 @@ class TriviaTestCase(unittest.TestCase):
 
     # POST Tests
     # --------------------------------------------------------------------------
+    # Creating a test to see if adding a question works properly
+    def test_create_question_basic(self):
+        # Creating dummy question data to add
+        dummy_question_data = {
+            'question': 'What is the answer to the meaning of life and everything in it?'
+            'answer': '42.',
+            'difficulty': 1,
+            'category': 1
+        }
+
+        # Attempting to create question with dummy question data
+        res = self.client().post('/questions', json = dummy_question_data)
+        # Transforming data into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    # Creating a test to see what happens when trying to add a question with missing data
+    def test_create_question_missing_data(self):
+        # Creating dummy question data to add
+        dummy_question_data = {
+            'question': 'What is the answer to the meaning of life and everything in it?'
+            'answer': '42.',
+        #    'difficulty': 1,
+            'category': 1
+        }
+
+        # Attempting to create question with dummy question data
+        res = self.client().post('/questions', json = dummy_question_data)
+        # Transforming data into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Unable to process request')
+
+    # Creating a test to ensure searching works correctly
+    def test_search_questions_found(self):
+        # Establishing a very basic new search
+        new_search = {'searchTerm': 'a'}
+
+        # Performing search with search term
+        res = self.client().post('/questions/search', json = new_search)
+        # Transforming data into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(len(data['total_questions']))
+
+    # Creating a test to ensure searching works if no results are found
+    def test_search_questions_notfound(self):
+        # Establishing a very basic bogus search
+        bogus_search = {'searchTerm': 'ajjoaiwfejaowijef'}
+
+        # Attempting to search with search term
+        res = self.client().post('/questions/search', json = bogus_search)
+        # Transforming data into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Resource not found')
+
+    # Creating a test to ensure playing a quiz works properly
+    def test_play_quiz_basic(self):
+        # Creating dummy round data
+        dummy_round_data = {
+            'previous_questions': [],
+            'quiz_category': {'type': 'Entertainment',
+                              'id': 5}
+        }
+
+        # Starting new quiz round by invoking endpoint
+        res = self.client().post('/quiz', json = dummy_round_data)
+        # Transforming data into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    # Creating test to see what happens when 'quiz' endpoint experiences failure
+    def test_play_quiz_422(self):
+        dummy_round_data = {
+        #    'previous_questions': [],
+            'quiz_category': {'type': 'Entertainment',
+                              'id': 5}
+        }
+
+        # Attempting to start new quiz round
+        res = self.client().post('/quiz', json = dummy_round_data)
+        # Transforming data into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Unable to process request')
 
 
 # Make the tests conveniently executable
