@@ -39,7 +39,7 @@ class TriviaTestCase(unittest.TestCase):
     # Creating test for GET categories endpoint
     def test_get_categories_basic(self):
         # Getting result from endpoint
-        res = self.client.get('/categories')
+        res = self.client().get('/categories')
         # Transforming response into JSON
         data = json.loads(res.data)
 
@@ -51,7 +51,7 @@ class TriviaTestCase(unittest.TestCase):
     # Creating test for GET categories when category_id doesn't exist
     def test_get_categories_nonexistent(self):
         # Attempting to get high value, likely non-existent result
-        res = self.client.get('/categories/100000')
+        res = self.client().get('/categories/100000')
         # Transforming response into JSON
         data = json.loads(res.data)
 
@@ -63,7 +63,7 @@ class TriviaTestCase(unittest.TestCase):
     # Creating test for GET questions endpoint
     def test_get_questions_basic(self):
         # Getting result from endpoint
-        res = self.client.get('/questions')
+        res = self.client().get('/questions')
         # Transforming response into JSON
         data = json.loads(res.data)
 
@@ -77,7 +77,7 @@ class TriviaTestCase(unittest.TestCase):
     # Creating test for GET questions endpoint when pagination set too high
     def test_get_questions_high_pagination(self):
         # Attempting to get result from endpoint with high pagination
-        res = self.client.get('/questions?page=100000')
+        res = self.client().get('/questions?page=100000')
         # Transforming response into JSON
         data = json.loads(res.data)
 
@@ -86,11 +86,50 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Resource not found')
 
-    # DELETE Test
+
+
+    # DELETE Tests
     # --------------------------------------------------------------------------
     # Creating test of delete functionality from DELETE endpoint
-    def test_delete_question(self):
+    def test_delete_question_basic(self):
         # Creating a dummy question
+        dummy_question = Question(question = 'What is your quest?',
+                                  answer = 'To seek the Holy Grail!',
+                                  difficulty = 1,
+                                  category = 1)
+
+        # Adding dummy question to database
+        dummy_question.insert()
+
+        # Collecting ID from newly inserted question
+        dummy_question_id = dummy_question.id
+
+        # Attempting to delete dummy question
+        res = self.client().delete('/questions/{}'.format(dummy_question_id))
+        # Transforming response into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['deleted'], str(dummy_question_id))
+
+    # Creating a test to see if the appropriate error is thrown when unexpected DELETE request is passed
+    def test_delete_question_422(self):
+        # Attempting to delete a question with a bad request
+        res = self.client().delete('/questions/asdkfjaskf')
+        # Transforming data into JSON
+        data = json.loads(res.data)
+
+        # Ensuring data passes tests as defined below
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Unable to process request')
+
+
+
+    # POST Tests
+    # --------------------------------------------------------------------------
 
 
 # Make the tests conveniently executable
