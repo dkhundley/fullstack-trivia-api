@@ -46,7 +46,7 @@ class TriviaTestCase(unittest.TestCase):
         # Ensuring data passes tests as defined below
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(len(data['categories']))
+        self.assertTrue(data['categories'])
 
     # Creating test for GET categories when category_id doesn't exist
     def test_get_categories_nonexistent(self):
@@ -70,9 +70,9 @@ class TriviaTestCase(unittest.TestCase):
         # Ensuring data passes tests as defined below
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(len(data['questions']))
-        self.assertTrue(len(data['total_questions']))
-        self.assertTrue(len(data['categories']))
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['categories'])
 
     # Creating test for GET questions endpoint when pagination set too high
     def test_get_questions_high_pagination(self):
@@ -96,9 +96,9 @@ class TriviaTestCase(unittest.TestCase):
         # Ensuring data passes tests as defined below
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(len(data['questions']))
-        self.assertTrue(len(data['total_questions']))
-        self.assertTrue(len(data['current_category']))
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
 
     # Creating test to assess what happens when nonexistent category is passed to endpoint
     def test_get_category_questions_404(self):
@@ -142,7 +142,7 @@ class TriviaTestCase(unittest.TestCase):
     # Creating a test to see if the appropriate error is thrown when unexpected DELETE request is passed
     def test_delete_question_422(self):
         # Attempting to delete a question with a bad request
-        res = self.client().delete('/questions/asdkfjaskf')
+        res = self.client().delete('/questions/10000000')
         # Transforming data into JSON
         data = json.loads(res.data)
 
@@ -159,7 +159,7 @@ class TriviaTestCase(unittest.TestCase):
     def test_create_question_basic(self):
         # Creating dummy question data to add
         dummy_question_data = {
-            'question': 'What is the answer to the meaning of life and everything in it?'
+            'question': 'What is the answer to the meaning of life and everything in it?',
             'answer': '42.',
             'difficulty': 1,
             'category': 1
@@ -178,7 +178,7 @@ class TriviaTestCase(unittest.TestCase):
     def test_create_question_missing_data(self):
         # Creating dummy question data to add
         dummy_question_data = {
-            'question': 'What is the answer to the meaning of life and everything in it?'
+            'question': 'What is the answer to the meaning of life and everything in it?',
             'answer': '42.',
         #    'difficulty': 1,
             'category': 1
@@ -207,13 +207,13 @@ class TriviaTestCase(unittest.TestCase):
         # Ensuring data passes tests as defined below
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(len(data['questions']))
-        self.assertTrue(len(data['total_questions']))
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
 
     # Creating a test to ensure searching works if no results are found
     def test_search_questions_notfound(self):
         # Establishing a very basic bogus search
-        bogus_search = {'searchTerm': 'ajjoaiwfejaowijef'}
+        bogus_search = {'searchTerm': ''}
 
         # Attempting to search with search term
         res = self.client().post('/questions/search', json = bogus_search)
